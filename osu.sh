@@ -1,4 +1,11 @@
 #!/bin/bash
+
+mkdir mftmp
+rm ./mflog.log
+#初始化各种全局变量等
+export WINEARCH WINEPREFIX OSUPREFIX
+export VERSION="1"
+#初始化各种函数
 ask_dialog(){
 	while(true);do
 		ans=$(zenity --list --title "欢迎回来" --text "要做什么呢owo?" --radiolist  --column "选择" --column "" --column "一个项目"\
@@ -14,7 +21,7 @@ ask_dialog(){
 }
 
 do_nothing(){
-	echo "do nothing..."
+	echo "啥都不做..."
 }
 
 download(){
@@ -24,13 +31,7 @@ download(){
 		wget "$1" -c -O "$3" 2>&1 \
 		|sed -u "s/^.* \+\([0-9]\+%\) \+\([0-9.]\+[GMKB]\) \+\([0-9hms.]\+\).*$/\1\n# 正在下载$2... (\2,预计剩余\3)/"\
 		|zenity --progress --title="正在下载$2 第$re次尝试" --auto-close
-		ret="$?"
-		if [ $ret == 0 ];then
-			echo "#下载完成";
-			return 0;
-		fi
 	done
-	return $ret;
 }
 
 download_basics(){
@@ -51,17 +52,19 @@ download_basics(){
 }
 
 logerror(){
-	echo "[`date +%T`][错误]: $2:$1" >> ./mflog.log
+	echo -e "[`date +%T`][错误]: $2:$1"
+	echo -e "[`date +%T`][错误]: $2:$1" >> ./mflog.log
 	if [ "$2" == "" ];then
 		title="错误!"
 	fi
 	if [ "$3" == "" ];then
 	zenity --error --title="$title" --text="$1" --ellipsize
-fi
+	fi
 }
 
 logwarn(){
-	echo "[`date +%T`][警告]: $1" >> ./mflog.log
+	echo -e "[`date +%T`][警告]: $1"
+	echo -e "[`date +%T`][警告]: $1" >> ./mflog.log
 	if [ "$2" == "" ];then
 		title="警告!"
 	fi
@@ -71,7 +74,8 @@ logwarn(){
 }
 
 loginfo(){
-	echo "[`date +%T`][信息]: $1" >> ./mflog.log
+	echo -e "[`date +%T`][信息]: $1"
+	echo -e "[`date +%T`][信息]: $1" >> ./mflog.log
 	if [ "$2" == "" ];then
 		title="信息"
 	fi
@@ -81,7 +85,8 @@ loginfo(){
 }
 
 logquestion(){
-	echo "[`date +%T`][询问]: $1"; >> ./mflog.log
+	echo -e "[`date +%T`][询问]: $1";
+	echo -e "[`date +%T`][询问]: $1"; >> ./mflog.log
 	zenity --question --ellipsize --text="$1";
 	if [ "$?" == 0 ];then
 		echo "是";
@@ -110,6 +115,15 @@ Categories=
 Path=$WINEPREFIX/drive_c/users/$USER/Local Settings/Application Data/osu!
 Terminal=false
 StartupNotify=false" > "$HOME/.local/share/applications/osu_test.desktop";
+			echo "[Desktop Entry]
+Type=Application
+Name=osu!
+MimeType=x-scheme-handler/osu;
+Exec=env WINEPREFIX=$WINEPREFIX wine start /ProgIDOpen osu! %U
+NoDisplay=true
+StartupNotify=true
+Icon=0DFE_osu!.0
+" > "$HOME/.local/share/applications/osu_mime_open.desktop";
 }
 
 new_terminal_execute(){
@@ -131,12 +145,43 @@ ins_choise_parser(){
 				create_desktop_file;
 				shift;
 				;;
+			字体)
+				while(true);do
+					if [ ! -f "./fonts.tar.xz" ];then
+						download "https://github.com/MATRIX-feather/osu_script/raw/master/fonts.tar.xz" "字体文件" "fonts.tar.xz";
+						if [ $(md5sum fonts.tar.xz|cut -d ' ' -f1) == "297d8749f7cc32314b6773f0f262de1c" ];then
+							cpfonts
+							break
+						else
+							logerror "下载出错,将会导致字体错误";
+							break;
+						fi
+					else
+						if [ $(md5sum fonts.tar.xz|cut -d ' ' -f1) == "297d8749f7cc32314b6773f0f262de1c" ];then		
+							loginfo "发现目录下已有字体文件,跳过下载." ";" "1";
+							cpfonts;
+							break
+						fi
+					fi
+				done
+
+				download "https://gitee.com/matrix-feather/osu_script/raw/master/patch_font.reg" "字体注册表" "patch_font.reg";
+				wine regedit ./patch_font.reg;
+				shift;
+				;;
 			*)
 				break;
 				shift;
 				;;
 		esac
 	done
+}
+
+cpfonts(){
+			mkdir -vp "$HOME/.local/share/fonts/osufonts"
+			mkdir -vp "./mftmp/fonts"
+			tar xvJf ./fonts.tar.xz -C ./mftmp/fonts;
+			cp -r ./mftmp/fonts "$HOME/.local/share/fonts/osufonts"
 }
 
 check_wine_version(){
@@ -165,6 +210,19 @@ basic_install(){
 		if [ "$(which $software)" == "" ];then
 			logerror "$software安装失败,将取消安装";
 			exit 1
+		fi
+	fi
+}
+
+check_update(){
+	web_version="`curl https://gitee.com/matrix-feather/osu_script/raw/master/VERSION`"
+	loginfo "当前版本 $VERSION ; 获取版本 : $web_version " "" ";"
+	if [ "$VERSION" != "$web_version" ] && [ "$web_version" != "" ] && [ "$web_version" != "{\"status\":404,\"data\":null,\"message\":\"404 Not Found\"}" ];then
+		logquestion "有新的更新可用,是否现在更新?\n你的版本:$VERSION\n获取版本:$web_version" "更新可用!"
+		if [ $? == 0 ];then
+			mv ./osu.sh ./osu.old.sh
+			loginfo "旧版安装脚本已备份"
+			download "https://gitee.com/matrix-feather/osu_script/raw/master/patch" "更新文件" "osu.sh"
 		fi
 	fi
 }
@@ -263,7 +321,8 @@ install(){
 		echo "#步骤:预处理"
 		ins_choise=$(zenity --list --title "预处理" --text "以下是建议安装的项目" --checklist --separator=" " --column "选择" --column "" --column ""\
 		TRUE "gdiplus" "修复游戏内图标显示异常"\
-		TRUE "桌面图标" "应用列表快捷方式");
+		TRUE "桌面图标" "应用列表快捷方式"\
+		TRUE "字体" "修复游戏内字体问题");
 		ins_stat="$?"
 		echo "$ins_choise $?"
 		ins_choise_parser $ins_choise;
@@ -312,21 +371,33 @@ uninstall(){
 while [[ $# -gt 0 ]]; do
 	arg=$1
 	case $1 in 
-		*)
-			echo "脚本暂不支持任何参数 :(";
-			exit 1;
+		-d | --desktop)
+			create_desktop_file;
+			shift;
+			;;
+		-h | --help)
+			echo "--desktop , -d : 桌面文件";
+			shift;
+			;;
+		-f | --font)
+			ins_choise_parser 字体;
+			shift;
+			;;
+		-u | --update)
+			check_update 0;
+			exit 0;
+			shift;
 			;;
 	esac
 done
 : main
-rm ./mflog.log
 
 if [ ! -f /etc/debian_version ]; then
 	logerror "发行版非debian系OS :("
 	exit 1;
 fi
 
-
+check_update;
 ask_dialog;
 ask_dialog_stat="$?"
 case $ask_dialog_stat in
@@ -340,7 +411,6 @@ case $ask_dialog_stat in
 		;;
 	3)
 		echo "exit";
-		exit 0;
 		;;
 esac
-exit
+rm -rf ./mftmp
