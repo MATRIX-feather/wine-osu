@@ -8,10 +8,11 @@
 #shellcheck disable=SC2143
 
 readonly HERE="$( dirname "$(readlink -f "${0}")" )";
+readonly RESOURCES="$HERE/resources";
 
-source "$HERE"/resources/Statics
-source "$HERE"/resources/ZenityPush
-source "$HERE"/resources/Logger
+source "$RESOURCES"/script/Statics
+source "$RESOURCES"/script/ZenityPush
+source "$RESOURCES"/script/Logger
 
 function Dialog()
 {
@@ -22,7 +23,8 @@ function Dialog()
                               --column "" \
                               --column "一个项目" \
                               --hide-column=2 \
-                              true "Install" "我要为$USERNAME安装osu!"
+                              true "Install" "我要为$USERNAME安装osu!" \
+                              false "FontPatch" "我要为$USERNAME打CJK字体补丁！"
     )";
 
     echo "$Selection"; #return不管用？？？
@@ -102,10 +104,15 @@ EOF
                 ;;
 
             (Font)
-                putinfo "字体: CJK补丁";
-                wine regedit ./patch-FontLink.reg;
-                putinfo "字体: Tahoma";
+                putinfo "字体: 复制假的Microsoft YaHei";
+                cp "$RESOURCES/font/fake-msyh.ttf" "$WINEPREFIX/drive_c/windows/Fonts";
+
+                putinfo "字体: winetricks Tahoma";
                 winetricks tahoma;
+
+                putinfo "字体: 注册表补丁";
+                wine regedit "$RESOURCES/regedit/patch-Font.reg";
+
                 shift;
                 ;;
 
@@ -130,11 +137,6 @@ function RunInstall()
         puterror "没有检测到wine! 请确保wine已被正确安装在您的设备上。";
         exit 1;
     };fi;
-    #endregion
-
-    #region 检查环境
-    putinfo "正在检查环境...";
-    CheckEnvironment;
     #endregion
 
     #region 准备安装器
@@ -261,12 +263,34 @@ function RunInstall()
 
 function main()
 {
+    #region 检查环境
+    putinfo "正在检查环境...";
+    CheckEnvironment;
+    #endregion
+
     case "$(Dialog)" in
         (Install)
             RunInstall;
             ;;
+        (FontPatch)
+            local main_WinePrefix;
+            main_WinePrefix="$(ZenityPushDirectorySelection "请选择osu容器地址")";
+
+            local shouldContinue;
+            shouldContinue="$(ZenityPushQuestion "我们将默认您已经预先配置好了osu容器\nosu!容器地址为: $main_WinePrefix\n\n如果没有，请点击\"否\"取消")";
+            if [ "$shouldContinue" -eq 1 ];then
+            {
+                putinfo "中止";
+                exit 0;
+            };fi;
+
+            export WINEPREFIX="$main_WinePrefix";
+            ParseOptionalOptions Font;
+            exit 0;
+            ;;
         (*)
-            putinfo "Unknown!";
+            puterror "传来了一个未知选项呢(´・ω・\`)";
+            exit 1;
             ;;
     esac;
 }

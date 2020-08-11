@@ -32,7 +32,7 @@ if [ "$Module_Logger_Loaded" != "true" ];then
                 ;;
         esac;
 
-        printf "[%s][$(date +%T)]${Color}[${LogLevel}]\t\t%s\33[0m\n" "$APPNAME" "$Message";
+        printf "[%s][$(date +%T)]${Color}[${LogLevel}]\t\t%s\33[0m\n" "$APPNAME" "$Message" >&2;
     }
 
     function putinfo()
