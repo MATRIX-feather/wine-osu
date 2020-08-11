@@ -115,8 +115,9 @@ EOF
                 ;;
 
             (Font)
-                putinfo "字体: 复制假的Microsoft YaHei";
+                putinfo "字体: 复制字体";
                 cp "$RESOURCES/font/fake-msyh.ttf" "$WINEPREFIX/drive_c/windows/Fonts";
+                cp "$RESOURCES/font/malgun.ttf" "$WINEPREFIX/drive_c/windows/Fonts";
 
                 putinfo "字体: winetricks Tahoma";
                 winetricks tahoma;
