@@ -55,12 +55,22 @@ function Download()
 
 function CheckEnvironment()
 {
+    #region 检查wine
+    putinfo "正在检查wine...";
+    if [ -z "$(command -v wine)" ];then
+    {
+        puterror "没有检测到wine! 请确保wine已被正确安装在您的设备上。";
+        exit 1;
+    };fi;
+    #endregion
+
     #检查wine版本是否会遇到问题
     if [ -n "$(wine --version | grep -- "-5.")" ];then
     {
         putwarn "如果您在此wine版本中遇到了网络问题，请尝试安装libldap2-dev(Ubuntu)";
     };fi;
 
+    #检查winetricks
     if [ -z "$(command -v winetricks)" ];then
     {
         puterror "没有检测到winetricks! 请确保winetricks已被正确安装在您的设备上。";
@@ -128,15 +138,6 @@ function RunInstall()
     #region 一些基础的东西
     local InstallerFile="";
     local Dotnet40InstallerFile="";
-    #endregion
-
-    #region 检查wine
-    putinfo "正在检查wine...";
-    if [ -z "$(command -v wine)" ];then
-    {
-        puterror "没有检测到wine! 请确保wine已被正确安装在您的设备上。";
-        exit 1;
-    };fi;
     #endregion
 
     #region 准备安装器
@@ -217,7 +218,7 @@ function RunInstall()
         puterror "Dotnet40 $(md5sum "$Dotnet40InstallerFile")";
         exit 1;
     };fi;
-    ZenityPushInfo "所有东西都准备好了，点击\"确定开始安装\"";
+    ZenityPushInfo "所有东西都准备好了，点击\"确定\"开始安装";
 
     #region 初始化wine容器
 
@@ -251,14 +252,13 @@ function RunInstall()
 		                      TRUE "Font" "修复游戏内字体问题"
     )";
     ParseOptionalOptions $OptionalOptions;
-    #endreion 预先处理
+    #endregion 预先处理
 
     #启动安装程序
     putinfo "正在开始安装...";
     wine "$Dotnet40InstallerFile";
     wine "$InstallerFile";
-
-    #endregion 初始化wine容器
+    wineserver -w
 }
 
 function main()
