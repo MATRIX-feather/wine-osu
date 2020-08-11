@@ -9,6 +9,7 @@
 
 readonly HERE="$( dirname "$(readlink -f "${0}")" )";
 readonly RESOURCES="$HERE/resources";
+readonly USERNAME="$(whoami)";
 
 source "$RESOURCES"/script/Statics
 source "$RESOURCES"/script/ZenityPush
