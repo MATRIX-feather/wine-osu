@@ -1,0 +1,56 @@
+#!/bin/bash
+#########################
+#   名称: ZenityPush
+#   用途: 将信息通过Zenity推送给用户
+#########################
+if [ "$Module_ZenityPush_Loaded" != true ];then
+{
+    function ZenityPushInfo()
+    {
+        local msg="${1:-"没有信息"}";
+        zenity --info --ellipsize --text="$msg";
+    }
+
+    function ZenityPushError()
+    {
+        local msg="${1:-"没有信息"}";
+        zenity --error --ellipsize --text="$msg";
+    }
+
+    function ZenityPushWarn()
+    {
+        local msg="${1:-"没有信息"}";
+        zenity --warning --ellipsize --text="$msg";
+    }
+
+    function ZenityPushQuestion()
+    {
+        local msg="${1:-"没有信息"}";
+        zenity --question --ellipsize --text="$msg";
+        echo "$?";
+    }
+
+    function ZenityPushFileSelection()
+    {
+        local Title="${1:-"没有信息"}";
+        local Path;
+
+        Path="$(zenity --file-selection --title="$Title")";
+        if [ "$Path" != "1" ];then
+            echo "$Path";
+        fi;
+    }
+
+    function ZenityPushDirectorySelection()
+    {
+        local Title="${1:-"没有信息"}";
+        local Path;
+
+        Path="$(zenity --directory --file-selection --title="$Title")";
+        if [ "$Path" != "1" ];then
+            echo "$Path";
+        fi;
+    }
+
+    readonly Module_ZenityPush_Loaded=true;
+};fi;

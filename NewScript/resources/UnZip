@@ -1,0 +1,29 @@
+#!/bin/bash
+#########################
+#   名称: UnZip
+#   用途: 负责解压操作
+#########################
+
+if [ "$Module_UnZip_Loaded" != true ];then
+{
+    function UnZip()
+    {
+        local File="$1";
+        local Target="$2";
+        if [ -z "$File" ] || [ -z "$Target" ];then
+        {
+            return 1;
+        };fi;
+
+        while ( true );do
+        {
+            mkdir -vp "$Target" 1>/dev/null;
+            unzip -o "$File" -d "$Target" 1>/dev/null;
+            break;
+        };done | zenity --progress --pulsate --auto-kill --auto-close --text="正在解压$File..."
+
+        echo ok
+    }
+
+    readonly Module_UnZip_Loaded=true;
+};fi;

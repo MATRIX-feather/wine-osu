@@ -178,10 +178,8 @@ ins_choise_parser(){
 }
 
 cpfonts(){
-			mkdir -vp "$HOME/.local/share/fonts/osufonts"
-			mkdir -vp "./mftmp/fonts"
-			tar xvJf ./fonts.tar.xz -C ./mftmp/fonts;
-			cp -r ./mftmp/fonts "$HOME/.local/share/fonts/osufonts"
+			mkdir -vp "$HOME/.local/share/fonts"
+			tar xvJf ./fonts.tar.xz -C "$HOME/.local/share/fonts";
 }
 
 check_wine_version(){

@@ -1,0 +1,59 @@
+#!/bin/bash
+#########################
+#   名称: Base
+#   用途: 提供一些基础的输出功能
+#########################
+
+if [ "$Module_Logger_Loaded" != "true" ];then
+{
+    readonly _Logger_Color_Green="\33[32m";
+    readonly _Logger_Color_Yellow="\33[33m";
+    readonly _Logger_Color_Red="\33[31m";
+    readonly _Logger_Color_White="\33[0m";
+
+    function Logger_Log()
+    {
+        local Message="$1";
+        local LogLevel="${2:-"Info"}";
+
+        local Color="";
+        case "$LogLevel" in
+            (Ok)
+                Color="${_Logger_Color_Green}";
+                ;;
+            (Warn)
+                Color="${_Logger_Color_Yellow}";
+                ;;
+            (Error)
+                Color="${_Logger_Color_Red}";
+                ;;
+            (Info)
+                Color="${_Logger_Color_White}";
+                ;;
+        esac;
+
+        printf "[%s][$(date +%T)]${Color}[${LogLevel}]\t\t%s\33[0m\n" "$APPNAME" "$Message";
+    }
+
+    function putinfo()
+    {
+        Logger_Log "$@";
+    }
+
+    function puterror()
+    {
+        Logger_Log "$@" "Error";
+    }
+
+    function putwarn()
+    {
+        Logger_Log "$@" "Warn";
+    }
+
+    function putok()
+    {
+        Logger_Log "$@" "Ok";
+    }
+
+    readonly Module_Logger_Loaded=true;
+};fi

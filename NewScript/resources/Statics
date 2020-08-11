@@ -1,0 +1,15 @@
+#!/bin/bash
+#########################
+#   名称: Statics
+#   用途: 在这里放置一些你想在所有组件中通用且不会改变的东西
+#########################
+
+#shellcheck disable=SC2034
+
+if [ "$Module_Statics_Loaded" != true ];then
+{
+    #在这行下面添加
+    readonly APPNAME="$(basename "$0")";   
+
+    readonly Module_Statics_Loaded=true;
+};fi
