@@ -97,7 +97,7 @@ function ParseOptionalOptions()
 			    if [ "$?" != 0 ];then
 			    	puterror "下载时发生了一个错误,这可能会导致快捷方式没有图标,将尝试继续运行..."
 			    fi
-                cat > "$HOME/.local/share/applications/osu_test.desktop" << EOF
+                cat > "$HOME/.local/share/applications/wine-osu.desktop" << EOF
 [Desktop Entry]
 Encoding=UTF-8
 Name=osu!
