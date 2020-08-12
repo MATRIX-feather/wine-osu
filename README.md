@@ -22,6 +22,13 @@ i386/amd64
     5. 在启动器中找到`osu!`, 点击即可开玩
 
 
+## 效果图
+
+![?](https://s1.ax1x.com/2020/08/12/avbKQf.png)
+![?](https://s1.ax1x.com/2020/08/12/avbQOS.png)
+![?](https://s1.ax1x.com/2020/08/12/avbuSP.png)
+![?](https://s1.ax1x.com/2020/08/12/avbMy8.png)
+
 ## 使用说明
 
 1.  在Deepin V20上您可能需要使用deepin-wine5运行osu!以避免编辑器顶栏黑条问题 
