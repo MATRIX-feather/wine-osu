@@ -213,10 +213,9 @@ function RunInstall()
     #endregion 准备安装器
 
     #检查md5
-    if [ "$(md5sum "$InstallerFile" | cut -d ' ' -f1)" != "db95d46aed7de500a31b2fe7d493bef1" ] || [ "$(md5sum "$Dotnet40InstallerFile" | cut -d ' ' -f1)" != "251743dfd3fda414570524bac9e55381" ];then
+    if  [ "$(md5sum "$Dotnet40InstallerFile" | cut -d ' ' -f1)" != "251743dfd3fda414570524bac9e55381" ];then
     {
         puterror "文件md5不匹配，请重试。";
-        puterror "Installer $(md5sum "$InstallerFile")";
         puterror "Dotnet40 $(md5sum "$Dotnet40InstallerFile")";
         exit 1;
     };fi;
