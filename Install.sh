@@ -86,12 +86,14 @@ function ParseOptionalOptions()
         case "$1" in
             (GdiPlus)
                 putinfo "GdiPlus";
+                echo "#安装Gdi+...";
                 winetricks gdiplus;
                 shift;
                 ;;
 
             (DesktopIcon)
                 putinfo "DesktopIcon";
+                echo "#应用列表快捷方式";
 				mkdir -vp "$HOME/.local/share/applications/";
                 Download "https://github.com/ppy/osu/raw/master/assets/lazer.png" "osu图标" "$OSUPREFIX/osu.png"
 			    if [ "$?" != 0 ];then
@@ -116,6 +118,7 @@ EOF
 
             (Font)
                 putinfo "字体: 复制字体";
+                echo "#补丁: CJK字体...";
                 cp "$RESOURCES/font/fake-msyh.ttf" "$WINEPREFIX/drive_c/windows/Fonts";
                 cp "$RESOURCES/font/malgun.ttf" "$WINEPREFIX/drive_c/windows/Fonts";
 
@@ -213,12 +216,14 @@ function RunInstall()
     #endregion 准备安装器
 
     #检查md5
+    echo "#检查md5...";
     if  [ "$(md5sum "$Dotnet40InstallerFile" | cut -d ' ' -f1)" != "251743dfd3fda414570524bac9e55381" ];then
     {
         puterror "文件md5不匹配，请重试。";
         puterror "Dotnet40 $(md5sum "$Dotnet40InstallerFile")";
         exit 1;
     };fi;
+    echo "# ";
     ZenityPushInfo "所有东西都准备好了，点击\"确定\"开始安装";
 
     #region 初始化wine容器
@@ -230,6 +235,7 @@ function RunInstall()
     export WINEARCH=win32;
 
     #建立目录
+    echo "#初始化目录...";
     mkdir -vp "$OSUPREFIX";
 	mkdir -vp "$WINEPREFIX/drive_c/users/$USERNAME/Local Settings/Application Data";
 
@@ -237,6 +243,7 @@ function RunInstall()
 	ln "$OSUPREFIX" "$WINEPREFIX/drive_c/users/$USERNAME/Local Settings/Application Data/osu!" -s;
 
     #设置wine容器
+    echo "#设置wine容器...";
     wineboot -u;
     winetricks winxp;
 
@@ -257,9 +264,17 @@ function RunInstall()
 
     #启动安装程序
     putinfo "正在开始安装...";
+    echo "#安装.NET 4.0...";
     wine "$Dotnet40InstallerFile";
+    echo "#安装osu!...";
+    putinfo "将mscoree, GDI+设为原生";
+    echo "#补丁: 将mscoree, GDI+设置为原生...";
+    wine regedit "$RESOURCES/regedit/patch-dll-overrides.reg";
     wine "$InstallerFile";
-    wineserver -w
+    echo "#等待wineserver退出...";
+    wineserver -w;
+    echo 100;
+    ZenityPushInfo "安装已完成，点击\"确定\"退出";
 }
 
 function main()
@@ -271,7 +286,7 @@ function main()
 
     case "$(Dialog)" in
         (Install)
-            RunInstall;
+            RunInstall | zenity --progress --pulsate --text="等待输出中...";
             ;;
         (FontPatch)
             local main_WinePrefix;
